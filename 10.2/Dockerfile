@@ -1,13 +1,13 @@
 # vim:set ft=dockerfile:
-FROM debian:jessie
+FROM debian:stretch-slim
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 
 # add gosu for easy step-down from root
-ENV GOSU_VERSION 1.7
+ENV GOSU_VERSION 1.10
 RUN set -x \
-	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
+	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates wget gpg dirmngr && rm -rf /var/lib/apt/lists/* \
 	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
 	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
 	&& export GNUPGHOME="$(mktemp -d)" \
@@ -28,9 +28,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
 ENV GPG_KEYS \
-# Key fingerprint = 1993 69E5 404B D5FC 7D2F  E43B CBCB 082A 1BB9 43DB
+# Key fingerprint = 177F 4010 FE56 CA33 3630  0305 F165 6F24 C74C D1D8
 # MariaDB Package Signing Key <package-signing-key@mariadb.org>
-	199369E5404BD5FC7D2FE43BCBCB082A1BB943DB \
+	177F4010FE56CA3336300305F1656F24C74CD1D8 \
 # pub   1024D/CD2EFD2A 2009-12-15
 #       Key fingerprint = 430B DF5C 56E7 C94E 848E  E60C 1C4C BDCD CD2E FD2A
 # uid                  Percona MySQL Development Team <mysql-dev@percona.com>
@@ -51,7 +51,7 @@ RUN set -ex; \
 	apt-key list
 
 # add Percona's repo for xtrabackup (which is useful for Galera)
-RUN echo "deb https://repo.percona.com/apt jessie main" > /etc/apt/sources.list.d/percona.list \
+RUN echo "deb https://repo.percona.com/apt stretch main" > /etc/apt/sources.list.d/percona.list \
 	&& { \
 		echo 'Package: *'; \
 		echo 'Pin: release o=Percona Development Team'; \
@@ -59,9 +59,9 @@ RUN echo "deb https://repo.percona.com/apt jessie main" > /etc/apt/sources.list.
 	} > /etc/apt/preferences.d/percona
 
 ENV MARIADB_MAJOR 10.2
-ENV MARIADB_VERSION 10.2.10+maria~jessie
+ENV MARIADB_VERSION 10.2.10+maria~stretch
 
-RUN echo "deb http://ftp.osuosl.org/pub/mariadb/repo/$MARIADB_MAJOR/debian jessie main" > /etc/apt/sources.list.d/mariadb.list \
+RUN echo "deb http://ftp.osuosl.org/pub/mariadb/repo/$MARIADB_MAJOR/debian stretch main" > /etc/apt/sources.list.d/mariadb.list \
 	&& { \
 		echo 'Package: *'; \
 		echo 'Pin: release o=MariaDB'; \
